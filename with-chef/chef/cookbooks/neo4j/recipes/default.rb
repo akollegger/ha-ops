@@ -21,13 +21,19 @@
 # TODO: hack up a check for java. ohai doe not handle this well
 # require_recipe "java"
 
+require_recipe "apt"
+
+package "default-jre-headless" do
+  action :install
+end
+
 neo4j_version=node[:neo4j][:version]||"1.2"
 tarball = "neo4j-#{neo4j_version}-unix.tar.gz"
 downloaded_tarball = "/tmp/#{tarball}"
 installation_dir = "/opt"
 exploded_tarball = "#{installation_dir}/neo4j-#{neo4j_version}"
 installed_app_dir = "#{installation_dir}/neo4j"
-ha_address = node[:neo4j][:ha_address]||node[:ipaddress]
+ip_address = node[:neo4j][:ip_address]||node[:ipaddress]
 
 # download remote file
 remote_file "#{downloaded_tarball}" do
@@ -71,7 +77,8 @@ template "#{installed_app_dir}/conf/neo4j-server.properties" do
   variables(
     :enable_ha => node[:neo4j][:enable_ha],
     :database_location => node[:neo4j][:database_location],
-    :webserver_port => node[:neo4j][:webserver_port]
+    :webserver_port => node[:neo4j][:webserver_port],
+    :ip_address => ip_address
   )
 end
 
@@ -83,7 +90,7 @@ template "#{installed_app_dir}/conf/neo4j.properties" do
   group "root"
   variables(
     :enable_ha => node[:neo4j][:enable_ha],
-    :ha_server => "#{ha_address}:#{node[:neo4j][:ha_port]}",
+    :ha_server => "#{ip_address}:#{node[:neo4j][:ha_port]}",
     :ha_machine_id => node[:neo4j][:ha_machine_id],
     :zookeeper_port => node[:neo4j][:zookeeper_port],
     :zookeeper_addresses => node[:neo4j][:zookeeper_addresses]
