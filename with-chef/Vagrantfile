@@ -27,6 +27,8 @@ Vagrant::Config.run do |config|
   subnetwork = "33.33.33"
   base_host = 1
 
+  raise "cookbooks_path '#{cookbooks_path}' does not exist" if !FileTest.exists?(cookbooks_path)
+
   def gen_addrs(subnetwork, from_host, host_count)
     (1..host_count).map{ |host|
       "#{subnetwork}.#{from_host + host -1}"
