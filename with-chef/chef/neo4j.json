@@ -1,0 +1,8 @@
+{
+  "neo4j":{
+    "database_location":"/srv/neo4j/data",
+    "webserver_port":7474,
+  },
+  "run_list": ["recipe[neo4j]"]
+}
+

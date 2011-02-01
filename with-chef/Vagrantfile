@@ -1,0 +1,84 @@
+Vagrant::Config.run do |config|
+
+  cookbooks_path = "/Users/akollegger/Developer/neo/githubs/ha-ops/with-chef/cookbooks"
+  zookeeper_instance_count = 1
+  zookeeper_client_port = 2181
+  zookeeper_sync_limit = 5
+  zookeeper_init_limit = 10
+  zookeeper_tick_time = 2000
+  zookeeper_data_dir = "/srv/zookeeper/data"
+
+  neo4j_instance_count = 1
+  neo4j_enable_ha = true
+  neo4j_database_location = "/srv/neo4j/data"
+  neo4j_webserver_port = 7474
+  neo4j_ha_port = 6001
+
+  subnetwork = "33.33.33"
+  base_host = 1
+
+  def gen_addrs(subnetwork, from_host, host_count)
+    (1..host_count).map{ |host|
+      "#{subnetwork}.#{from_host + host -1}"
+    }
+  end
+
+  zookeeper_addresses = gen_addrs(subnetwork, base_host, zookeeper_instance_count)
+  neo4j_addresses = gen_addrs(subnetwork, base_host + zookeeper_instance_count, neo4j_instance_count)
+
+  # 
+  # Zookeeper cluster
+  #
+  (1..zookeeper_instance_count).each {|instance_number|
+    config.vm.define :"zoo_#{instance_number}" do |zoo_config|
+      zoo_config.vm.box = "lucid32"
+
+      zoo_config.vm.network(zookeeper_addresses[instance_number-1])
+
+      zoo_config.vm.provision :chef_solo do |chef|
+        chef.cookbooks_path = cookbooks_path
+        chef.add_recipe "zookeeper"
+        chef.json.merge!({
+          :zookeeper => {
+            :cluster_addresses => zookeeper_addresses,
+            :client_port => zookeeper_client_port,
+            :sync_limit => zookeeper_sync_limit,
+            :init_limit => zookeeper_init_limit,
+            :tick_time => zookeeper_tick_time,
+            :data_dir => zookeeper_data_dir,
+            :zookeeper_id => instance_number
+          }
+        })
+      end
+    end
+  }
+
+  #
+  # Neo4j HA cluster
+  # 
+  (1..neo4j_instance_count).each {|instance_number|
+    config.vm.define :"neo4j_#{instance_number}" do |neo4j_config|
+      neo4j_config.vm.box = "lucid32"
+  
+      neo4j_config.vm.network(neo4j_addresses[instance_number-1])
+
+      neo4j_config.vm.provision :chef_solo do |chef|
+        chef.cookbooks_path = cookbooks_path
+        chef.add_recipe "neo4j"
+        chef.json.merge!({
+          :neo4j => {
+            :enable_ha => neo4j_enable_ha,
+            :database_location => neo4j_database_location,
+            :webserver_port => neo4j_webserver_port,
+            :ha_address => neo4j_addresses[instance_number-1],
+            :ha_port => neo4j_ha_port,
+            :ha_machine_id => instance_number,
+            :zookeeper_port => zookeeper_client_port,
+            :zookeeper_addresses => zookeeper_addresses
+          }
+        })
+      end
+    end
+  }
+
+end

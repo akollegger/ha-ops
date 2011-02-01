@@ -1,0 +1,14 @@
+{
+  "neo4j":{
+    "database_location":"/srv/neo4j/data",
+    "webserver_port":7474,
+    "ha_machine_id":1,
+    "enable_ha":true,
+    "zookeeper_port":2181,
+    "zookeeper_addresses":["33.33.33.1","33.33.33.2"],
+    "ha_address":"33.33.33.3",
+    "ha_port":6001
+  },
+  "run_list": ["recipe[neo4j]"]
+}
+
