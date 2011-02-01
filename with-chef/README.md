@@ -24,8 +24,9 @@ With vagrant installed, you can run the Vagrantfile like this:
 
 1. Add a "box" to use for creating VM instances
   * `vagrant box add lucid32 http://files.vagrantup.com/lucid32.box`
-2. Edit the `Vagrantfile` to match the install directory and instance counts
-  * look for comments in the file
+2. Edit the `Vagrantfile` to change the VM instance counts
+  * zookeeper_instance_count for number of Zookeeper VMs
+  * neo4j_instance_count for number of Neo4j VMs
 3. Launch the VMs
   * `vagrant up`
 
