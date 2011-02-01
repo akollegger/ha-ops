@@ -3,13 +3,13 @@ Vagrant::Config.run do |config|
   #
   # Edit this part.............................................................
   
-  # change "cookbooks_path" to match the actual absolute path to the cookbooks"
+  # absolute path to the chef cookbooks
   cookbooks_path = "#{File.dirname(__FILE__)}/chef/cookbooks"
 
-  # the number of zookeeper virtual machines
+  # number of zookeeper virtual machines
   zookeeper_instance_count = 1
 
-  # the number of Neo4j virtual machines
+  # number of Neo4j virtual machines
   neo4j_instance_count = 1
 
   # ...........................................................................
