@@ -29,7 +29,7 @@ org.neo4j.server.webadmin.data.uri=http://<%= @ip_address %>:<%= @webserver_port
 org.neo4j.server.webadmin.management.uri=http://<%= @ip_address %>:<%= @webserver_port %>/db/manage/
 #
 ## Low-level graph engine tuning file
-#org.neo4j.server.db.tuning.properties=neo4j.properties
+org.neo4j.server.db.tuning.properties=<%= @conf_dir %>/neo4j.properties
 
 <% if @enable_ha %>
 org.neo4j.server.database.mode=ha

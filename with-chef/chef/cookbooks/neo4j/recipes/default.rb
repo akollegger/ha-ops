@@ -78,6 +78,7 @@ template "#{installed_app_dir}/conf/neo4j-server.properties" do
     :enable_ha => node[:neo4j][:enable_ha],
     :database_location => node[:neo4j][:database_location],
     :webserver_port => node[:neo4j][:webserver_port],
+    :conf_dir => "#{installed_app_dir}/conf",
     :ip_address => ip_address
   )
 end

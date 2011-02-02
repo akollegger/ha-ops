@@ -8,6 +8,7 @@ Vagrant::Config.run do |config|
 
   # number of Neo4j virtual machines
   neo4j_instance_count = 1
+  neo4j_version = "1.3.M01"
 
   # ...........................................................................
 
@@ -80,6 +81,7 @@ Vagrant::Config.run do |config|
         chef.add_recipe "neo4j"
         chef.json.merge!({
           :neo4j => {
+            :version => neo4j_version,
             :enable_ha => neo4j_enable_ha,
             :database_location => neo4j_database_location,
             :webserver_port => neo4j_webserver_port,
