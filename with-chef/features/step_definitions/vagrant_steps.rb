@@ -35,8 +35,15 @@ Given /^(\d+) neo4j server$/ do |expected_neo4j|
   @neo4j_instance_count = specified_neo4j.to_i
 end
 
+Given /^no running VM instances$/ do
+  vagrant_status = `vagrant status`
+  vagrant_status.should_not match(/running/),
+    "At least vagrant instance is already running. Stop instances with `vagrant halt`"
+end
+
 When /^I launch the simulation$/ do
-  puts "launching vagrant (a lie)"
+  puts "Launching the simulation. This may take some time..."
+  @vagrant_launch = `vagrant up`
   @vagrant_status = `vagrant status`
 end
 

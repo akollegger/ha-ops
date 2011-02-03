@@ -8,6 +8,7 @@ To provision zookeeper and Neo4j-HA instances
       Given a Vagrantfile specifying
         And a cluster with 1 management machine
         And 1 neo4j server
+        And no running VM instances
        When I launch the simulation
        Then I should have 1 Neo4j instance
         And 1 zookeeper instances
