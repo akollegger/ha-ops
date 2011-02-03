@@ -1,50 +1,31 @@
 # Steps for working with vagrant to simulate a cluster deployment
+#
 
-Before do
-  @vagrant_file = "Vagrantfile"
+
+Given /^a prepared Vagrant simulation$/ do 
+  vbox_version.should match(/Oracle VM VirtualBox Manager 4.0/),
+    "VirtualBox 4.0+ required. Please check your version."
+  vagrant_file_exists.should be_true,
+    "Vagrantfile is missing"
 end
 
-After do
-end
-
-Given /^a Vagrantfile specifying$/ do 
-  raise "Vagrantfile is missing" if !FileTest.exists?(@vagrant_file)
-end
-
-Given /^a cluster with (\d+) management machines?$/ do |expected_zookeepers|
-  specified_zookeepers = "n/a"
-  File.open( @vagrant_file ) do |f|
-    f.grep( /zookeeper_instance_count = \d+/ ) do |line|
-      specified_zookeepers = (/= (\d+)$/.match line)[1]
-    end
-  end
-  specified_zookeepers.should eq(expected_zookeepers),
-    "Expected zookeepers (#{expected_zookeepers}) dont match count specified in Vagrantfile (#{specified_zookeepers})"
-  @zookeeper_instance_count = specified_zookeepers.to_i
-end
-
-Given /^(\d+) neo4j server$/ do |expected_neo4j|
-  specified_neo4j = "n/a"
-  File.open( @vagrant_file ) do |f|
-    f.grep( /neo4j_instance_count = \d+/ ) do |line|
-      specified_neo4j = (/= (\d+)$/.match line)[1]
-    end
-  end
-  specified_neo4j.should eq(expected_neo4j),
-     "Expected neo4j servers (#{expected_neo4j}) dont match count specified in Vagrantfile (#{specified_neo4j})"
-  @neo4j_instance_count = specified_neo4j.to_i
+Given /^a cluster with (\d+) Zookeeper and (\d+) Neo4j instances?$/ do |expected_zookeepers, expected_neo4j|
+  specified_instances = vagrant_cluster_counts
+  specified_instances[:zoo].should eq(expected_zookeepers),
+    "#{specified_instances[:zoo]} Zookeeper(s) specified in Vagrantfile, but expected (#{expected_zookeepers})"
+  specified_instances[:neo4j].should eq(expected_neo4j),
+    "#{specified_instances[:neo4j]} Neo4j server(s) specified in Vagrantfile, but expected (#{expected_neo4j})"
 end
 
 Given /^no running VM instances$/ do
   vagrant_status = `vagrant status`
   vagrant_status.should_not match(/running/),
-    "At least vagrant instance is already running. Stop instances with `vagrant halt`"
+    "At least one vagrant instance is already running. Stop instances with `vagrant halt`"
 end
 
 When /^I launch the simulation$/ do
   puts "Launching the simulation. This may take some time..."
-  @vagrant_launch = `vagrant up`
-  @vagrant_status = `vagrant status`
+  vagrant_up
 end
 
 Then /^I should have (\d+) Neo4j instances?$/ do |expected_neo4j|
@@ -53,9 +34,5 @@ end
 
 Then /^(\d+) [Zz]ookeeper instances?$/ do |expected_zookeepers|
   running_instances_of("zoo_").should == expected_zookeepers.to_i
-end
-
-def running_instances_of(type_prefix)
-  return @vagrant_status.lines.count {|line| /#{type_prefix}\d+\s+running/ =~ line }
 end
 
