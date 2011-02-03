@@ -7,7 +7,7 @@ end
 After do
 end
 
-Given /^a Vagrantfile$/ do 
+Given /^a Vagrantfile specifying$/ do 
   raise "Vagrantfile is missing" if !FileTest.exists?(@vagrant_file)
 end
 
@@ -34,20 +34,19 @@ Given /^(\d+) neo4j server$/ do |expected_neo4j|
 end
 
 When /^I launch the simulation$/ do
-  puts "launching vagrant"
+  puts "launching vagrant (a lie)"
+  @vagrant_status = `vagrant status`
 end
 
 Then /^I should have (\d+) Neo4j instances?$/ do |expected_neo4j|
-  vagrant_status = `vagrant status`
-  
-  vagrant_status.each {|line| puts "foo #{line}" }
-  #if !(vagrant_status.count {|line| /^neo4j.*running$/ =~ line } == expected_neo4j) then
-  #if !(vagrant_status.count{|line| true } == expected_neo4j) then
-  #  raise "not all neo4j instances are running. check 'vagrant status' for details"
-  #end
+  running_instances_of("neo4j_").should == expected_neo4j.to_i
 end
 
 Then /^(\d+) [Zz]ookeeper instances?$/ do |expected_zookeepers|
-  pending
+  running_instances_of("zoo_").should == expected_zookeepers.to_i
+end
+
+def running_instances_of(type_prefix)
+  return @vagrant_status.lines.count {|line| /#{type_prefix}\d+\s+running/ =~ line }
 end
 

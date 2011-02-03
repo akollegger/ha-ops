@@ -5,10 +5,10 @@ Should use chef recipes
 To provision zookeeper and Neo4j-HA instances
 
   Scenario: Prepare a simulated cluster
-      Given a Vagrantfile
+      Given a Vagrantfile specifying
         And a cluster with 1 management machine
         And 1 neo4j server
        When I launch the simulation
        Then I should have 1 Neo4j instance
-        And 1 zookeeper instance
+        And 1 zookeeper instances
 

@@ -13,14 +13,14 @@ Virtual Box:
 * VirtualBox 4.0.2+
 
 Gems:
-* cucumber - for running integration tests
-* vagrant - for launching VirtualBox instances
 * chef - for provisioning the instances
+* vagrant - for launching VirtualBox instances
+* cucumber - for running integration tests
 
 Deploy with Vagrant
 -------------------
 
-With vagrant installed, you can run simulate an HA cluster by launching
+With Vagrant installed, you can simulate an HA cluster by launching
 VirtualBox VMs configured in the Vagrantfile.
 
 Follow these steps:
@@ -38,10 +38,15 @@ Follow these steps:
 Build & Test
 ------------
 
+Automated integration tests using Cucumber are under development.
+
 `rake features`
 
 Build & Test With Maven
 -----------------------
+
+Once the Cucumber tests work, they'll get maven driven. This may well
+be a pointless exercise. 
 
 First time:
 `mvn -Dcucumber.installGems=true integration-test`
