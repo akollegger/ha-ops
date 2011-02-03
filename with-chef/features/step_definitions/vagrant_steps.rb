@@ -18,7 +18,8 @@ Given /^a cluster with (\d+) management machines?$/ do |expected_zookeepers|
       specified_zookeepers = (/= (\d+)$/.match line)[1]
     end
   end
-   raise "Expected zookeepers (#{expected_zookeepers}) dont match count specified in Vagrantfile (#{specified_zookeepers})" if (specified_zookeepers != expected_zookeepers)
+  specified_zookeepers.should eq(expected_zookeepers),
+    "Expected zookeepers (#{expected_zookeepers}) dont match count specified in Vagrantfile (#{specified_zookeepers})"
   @zookeeper_instance_count = specified_zookeepers.to_i
 end
 
@@ -29,7 +30,8 @@ Given /^(\d+) neo4j server$/ do |expected_neo4j|
       specified_neo4j = (/= (\d+)$/.match line)[1]
     end
   end
-   raise "Expected neo4j servers (#{expected_neo4j}) dont match count specified in Vagrantfile (#{specified_neo4j})" if (specified_neo4j != expected_neo4j)
+  specified_neo4j.should eq(expected_neo4j),
+     "Expected neo4j servers (#{expected_neo4j}) dont match count specified in Vagrantfile (#{specified_neo4j})"
   @neo4j_instance_count = specified_neo4j.to_i
 end
 
