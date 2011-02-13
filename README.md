@@ -14,7 +14,7 @@ improve the repetitive tasks, then maybe writing their own customized tool.
 So, we'll do that...
 
 1. by-hand - bash scripting for terminal madness
-2. with-chef - provisioning with Chef Systems Integration recipes
+2. with-chef - provisioning with Chef recipes
 3. with-hops - Neo4j aware tooling
 
 Each approach is documented and driven by executable feature descriptions,
@@ -27,7 +27,11 @@ Where to start?
 The `by-hand` tooling is the most complete and provides a suitable reference
 for doing things manually, assuming you're comfortable with bash scripts.
 
-If you're a chef shop, then naturally `with-chef` makes sense.
+After that try deploying `with-chef` using virtual machines to simulate
+a cluster.
+
+The `with-hops` tooling is not yet available, so you'll have to wait to try that
+out. 
 
 Cucumber what?
 --------------
@@ -56,6 +60,9 @@ References
 ----------
 
 * [HA-Ops Wiki](https://github.com/akollegger/ha-ops/wiki)
+* [HA-Ops By Hand](https://github.com/akollegger/ha-ops/wiki/By-hand)
+* [HA-Ops With Chef](https://github.com/akollegger/ha-ops/wiki/With-chef)
+
 * [Cucumber BDD](http://cukes.info)
 * [Chef Systems Integration](http://www.opscode.com/)
 * [rvm](http://rvm.beginrescueend.com/)

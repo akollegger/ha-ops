@@ -21,13 +21,21 @@ Running with Cucumber
 The scenerios can be run using a rake task, or the `cucumber` command that
 was installed with the Cucumber Gem. 
 
-* `rake features` - run all scenarios
+* `rake features` - run all scenarios in all features
 * `cucumber --dry-run` - to read each scenario without running anything
 * `cucumber --tags=@install-neo4j` - to install neo4j into the work directory
 * `cucumber --tags=@<name-of-scenario>` - to run any tagged scenario 
 
+Running Literally by Hand
+-------------------------
+
+Reading through the [manage-ha-cluster.feature](/by-hand/features/manage-ha-cluster.feature)
+
+
 References
 ----------
+
+* [HA-Ops By Hand](https://github.com/akollegger/ha-ops/wiki/By-hand)
 
 * [Cucumber BDD](http://cukes.info)
 
