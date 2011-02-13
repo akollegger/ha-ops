@@ -1,6 +1,10 @@
 HA-Ops With Chef
 ================
 
+The HA-Ops Chef cookbook for Neo4j can provision any Debian-like host 
+machine. To demonstrate the operation, the included scripts and
+configuration use `vagrant` to simulate a cluster of machines.
+
 Requirements
 ------------
 
@@ -33,17 +37,32 @@ Follow these steps:
 2. Edit the `Vagrantfile` to change the VM instance counts
    * `zookeeper_instance_count` for number of Zookeeper VMs
    * `neo4j_instance_count` for number of Neo4j VMs
+   * (optional step. By default, the spec will launch 1 of each)
 3. Launch the VMs
    * `vagrant up`
 4. Check that Neo4j is runnning
+   * `http://localhost:7474`
 
+Look for the "Forwarding ports..." lines in the deployment transcript
+to see which local ports have been forward to a virtual machine port.
+
+For instance...
+
+    [neo4j_1] -- ssh: 22 => 2200 (adapter 1)
+
+...indicates that local port 2222 is forwarded to virtual port 22
+of the virtual machine named `neo4j_1`.
 
 Build & Test
 ------------
 
-Automated integration tests using Cucumber are under development.
+The above steps can be reduced to just running the Cucumber BDD
+feature description:
 
 `rake features`
+
+Running the full feature takes a long time. Please be patient while
+the virtual machines are created, started and provisioned.
 
 References
 ----------

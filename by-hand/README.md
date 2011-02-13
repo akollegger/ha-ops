@@ -41,6 +41,24 @@ To work with a group of actual machines (to which you have ssh access), the
 addresses would change from `localhost` to the actual machine addresses. Then, 
 each `for` means "do this to each machine" for the appropriate cluster type.
 
+Using the GraphDB Cluster
+-------------------------
+
+By default, the script will start three Neo4j GraphDB instances. To use them, you 
+can manually run each of the steps up to starting the cluster:
+
+1. `cucumber --tags=@install-neo4j,@create-coordinator-cluster,@create-neo4j-cluster`
+2. `cucumber --tags=@start-coordinator-cluster,@start-neo4j-cluster`
+
+Then you'll have Neo4j GraphDBs available at:
+
+* (http://localhost:7474)
+* (http://localhost:7475)
+* (http://localhost:7476)
+
+To stop the cluster, first stop the GraphDBs, then the Coordinators:
+
+1. `cucumber --tags=@stop-neo4j-cluster,@stop-coordinator-cluster`
 
 References
 ----------
