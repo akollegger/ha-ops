@@ -29,7 +29,7 @@ was installed with the Cucumber Gem.
 Running Literally by Hand
 -------------------------
 
-Reading through the [manage-ha-cluster.feature](/by-hand/features/manage-ha-cluster.feature)
+Reading through the [manage-ha-cluster.feature](features/manage-ha-cluster.feature)
 
 
 References
