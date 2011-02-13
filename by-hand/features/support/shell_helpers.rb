@@ -23,8 +23,8 @@ module ShellHelpers
   
   # not a very robust check for compatibility
   def bash_compatible
-    shell = `echo $SHELL`
-    return (/sh/ =~ shell)
+    shell = `sh --version`
+    return ($?.to_i == 0)
   end
 
   def setenv(varname, value)
@@ -62,6 +62,10 @@ module ShellHelpers
     return @stdout
   end
 
+  def last_exit_code
+    return @exit_code
+  end
+
   def create_file(file_name, contents)
     file_path = File.join(file_name)
     File.open(file_path, "w") { |f| f << contents }
@@ -76,12 +80,10 @@ module ShellHelpers
 
   def pushd(path)
     @@dir_stack.push(Dir.getwd)
-    puts "pushd stack #{@@dir_stack}"
     Dir.chdir(path)
   end
 
   def popd
-    puts "popd stack #{@@dir_stack}"
     Dir.chdir(@@dir_stack.pop) if !@@dir_stack.empty?
   end
 

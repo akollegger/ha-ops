@@ -20,8 +20,8 @@ Gems:
 * vagrant - for launching VirtualBox instances
 * cucumber - for running integration tests
 
-Deploy with Vagrant
--------------------
+Simulated Deployment with Vagrant
+---------------------------------
 
 With Vagrant installed, you can simulate an HA cluster by launching
 VirtualBox VMs configured in the Vagrantfile.
@@ -45,25 +45,12 @@ Automated integration tests using Cucumber are under development.
 
 `rake features`
 
-Build & Test With Maven
------------------------
-
-Once the Cucumber tests work, they'll get maven driven. This may well
-be a pointless exercise. 
-
-First time:
-`mvn -Dcucumber.installGems=true integration-test`
-
-Then:
-`mvn integration-test`
-
 References
 ----------
 
+* [Chef Systems Integration](http://www.opscode.com/chef)
 * [VirtualBox](http://www.virtualbox.org/)
 * [rubygems](http://rubygems.org/)
 * [rvm](http://rvm.beginrescueend.com/)
 * [vagrant](http://vagrantup.com/)
-* [chef](http://www.opscode.com/chef)
-* [cuke4duke](https://github.com/aslakhellesoy/cuke4duke/wiki/maven)
 
