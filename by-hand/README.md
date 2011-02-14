@@ -21,10 +21,28 @@ Running with Cucumber
 The scenerios can be run using a rake task, or the `cucumber` command that
 was installed with the Cucumber Gem. 
 
-* `rake features` - run all scenarios in all features
-* `cucumber --dry-run` - to read each scenario without running anything
-* `cucumber --tags=@install-neo4j` - to install neo4j into the work directory
-* `cucumber --tags=@<name-of-scenario>` - to run any tagged scenario 
+* `rake features` - to run all scenarios in all features
+* `cucumber --dry-run` - to show all scenarios without running anything
+* `cucumber features/<feature-name>` - to run a particular feature
+
+Using the GraphDB Cluster
+-------------------------
+
+By default, the features work with three Neo4j GraphDB instances. To use 
+them, just install then start the cluster:
+
+1. `cucumber features/install-localhost-cluster.feature`
+2. `cucumber features/start-localhost-cluster.feature`
+
+Then you'll have Neo4j GraphDBs available at:
+
+* (http://localhost:7474)
+* (http://localhost:7475)
+* (http://localhost:7476)
+
+To stop the cluster:
+
+1. `cucumber features/stop-localhost-cluster.feature`
 
 Running Literally by Hand
 -------------------------
@@ -40,25 +58,6 @@ shell commands to install, configure and manage the localhost cluster.
 To work with a group of actual machines (to which you have ssh access), the 
 addresses would change from `localhost` to the actual machine addresses. Then, 
 each `for` means "do this to each machine" for the appropriate cluster type.
-
-Using the GraphDB Cluster
--------------------------
-
-By default, the script will start three Neo4j GraphDB instances. To use them, you 
-can manually run each of the steps up to starting the cluster:
-
-1. `cucumber --tags=@install-neo4j,@create-coordinator-cluster,@create-neo4j-cluster`
-2. `cucumber --tags=@start-coordinator-cluster,@start-neo4j-cluster`
-
-Then you'll have Neo4j GraphDBs available at:
-
-* (http://localhost:7474)
-* (http://localhost:7475)
-* (http://localhost:7476)
-
-To stop the cluster, first stop the GraphDBs, then the Coordinators:
-
-1. `cucumber --tags=@stop-neo4j-cluster,@stop-coordinator-cluster`
 
 References
 ----------

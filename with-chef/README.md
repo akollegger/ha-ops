@@ -28,9 +28,15 @@ Simulated Deployment with Vagrant
 ---------------------------------
 
 With Vagrant installed, you can simulate an HA cluster by launching
-VirtualBox VMs configured in the Vagrantfile.
+VirtualBox VMs configured in the Vagrantfile. Running `vagrant` will
+create, provision and start up a collection of Virtual Machines 
+according to the specfications in the `Vagrantfile`.
 
-Follow these steps:
+To provision the VMs, notice that the Vagrantfile has the `chef.add_recipe`
+lines indicate the recipe to be used for installing software. The recipes
+themselves are contained under the `chef/cookbooks/` directory.
+
+To run the simulated deployment:
 
 1. Add a "box" to use for creating VM instances
    * `vagrant box add lucid32 http://files.vagrantup.com/lucid32.box`
@@ -63,6 +69,7 @@ feature description:
 
 Running the full feature takes a long time. Please be patient while
 the virtual machines are created, started and provisioned.
+
 
 References
 ----------
