@@ -47,13 +47,12 @@ To stop the cluster:
 Running Literally by Hand
 -------------------------
 
-Reading through the [manage-localhost-cluster.feature](by-hand/features/manage-localhost-cluster.feature)
-you can see exactly what tools are required and what has to be configured
-to set up a cluster on a local machine. 
+Reading through the [features](by-hand/features/) you can see exactly what tools 
+are required and what has to be configured to set up a cluster on a local machine. 
 
-You'll find a `defaults.cfg` file in this directory that sets up the environment
-variables in the same way. You can source that, then copy-and-paste each line of
-shell commands to install, configure and manage the localhost cluster.
+The`defaults.cfg` file in this directory sets up the environment variables in 
+the same way as used by the features. You can source that, then copy-and-paste 
+each line of shell commands to install, configure and manage the localhost cluster.
 
 To work with a group of actual machines (to which you have ssh access), the 
 addresses would change from `localhost` to the actual machine addresses. Then, 
