@@ -27,13 +27,15 @@ package "default-jre-headless" do
   action :install
 end
 
-neo4j_version=node[:neo4j][:version]||"1.2"
+neo4j_version=node[:neo4j][:version]||"1.3-SNAPSHOT"
 tarball = "neo4j-#{neo4j_version}-unix.tar.gz"
 downloaded_tarball = "/tmp/#{tarball}"
 installation_dir = "/opt"
 exploded_tarball = "#{installation_dir}/neo4j-#{neo4j_version}"
 installed_app_dir = "#{installation_dir}/neo4j"
-ip_address = node[:neo4j][:ip_address]||node[:ipaddress]
+public_address = node[:neo4j][:public_address]||node[:ipaddress]
+bind_address = node[:neo4j][:ha][:bind_address]||node[:ipaddress]
+is_coordinator_node = node[:neo4j][:coordinator][:enable]||false
 
 # download remote file
 remote_file "#{downloaded_tarball}" do
@@ -75,11 +77,11 @@ template "#{installed_app_dir}/conf/neo4j-server.properties" do
   owner "root"
   group "root"
   variables(
-    :enable_ha => node[:neo4j][:enable_ha],
     :database_location => node[:neo4j][:database_location],
     :webserver_port => node[:neo4j][:webserver_port],
     :conf_dir => "#{installed_app_dir}/conf",
-    :ip_address => ip_address
+    :public_address => public_address,
+    :enable_ha => node[:neo4j][:ha][:enable]
   )
 end
 
@@ -90,24 +92,70 @@ template "#{installed_app_dir}/conf/neo4j.properties" do
   owner "root"
   group "root"
   variables(
-    :enable_ha => node[:neo4j][:enable_ha],
-    :ha_server => "#{ip_address}:#{node[:neo4j][:ha_port]}",
-    :ha_machine_id => node[:neo4j][:ha_machine_id],
-    :zookeeper_port => node[:neo4j][:zookeeper_port],
-    :zookeeper_addresses => node[:neo4j][:zookeeper_addresses]
+    :enable_ha => node[:neo4j][:ha][:enable],
+    :ha_server => "#{bind_address}:#{node[:neo4j][:ha][:port]}",
+    :ha_machine_id => node[:neo4j][:ha][:machine_id],
+    :coordinator_port => node[:neo4j][:coordinator][:port],
+    :coordinator_addresses => node[:neo4j][:coordinator][:cluster]
   )
 end
 
-# ask Neo4j to install start/stop scripts for itself
+template "#{installed_app_dir}/conf/coord.cfg" do
+  source "coord_cfg.erb"
+  mode 0644
+  owner "root"
+  group "root"
+  variables(
+    :cluster_addresses => node[:neo4j][:coordinator][:cluster],
+    :client_port =>node[:neo4j][:coordinator][:client_port],
+    :sync_limit => node[:neo4j][:coordinator][:sync_limit],
+    :init_limit => node[:neo4j][:coordinator][:init_limit],
+    :tick_time => node[:neo4j][:coordinator][:tick_time],
+    :data_dir => node[:neo4j][:coordinator][:data_dir]
+  )
+end
+
+directory "#{node[:neo4j][:coordinator][:data_dir]}" do
+  owner "root"
+  group "root"
+  mode 0755
+  action :create
+  recursive true
+end
+
+template "#{node[:neo4j][:coordinator][:data_dir]}/myid" do
+  source "myid.erb"
+  mode 0644
+  owner "root"
+  group "root"
+  variables(
+    :machine_id => node[:neo4j][:coordinator][:machine_id]
+  )
+end
+
+# install Neo4j Server as a service, if not a coordinator node
 execute "./neo4j install" do
   user "root"
   group "root"
 
   cwd installed_app_dir + "/bin"
   creates "/etc/init.d/neo4j-server"
+
+  not_if { is_coordinator_node }
 end
 
-# finally, start the server
+# install Neo4j Coordinator as a service, if enabled
+execute "./neo4j-coordinator install" do
+  user "root"
+  group "root"
+
+  cwd installed_app_dir + "/bin"
+  creates "/etc/init.d/neo4j-coordinator"
+
+  only_if { is_coordinator_node }
+end
+
+# start the Neo4j Server, if this isn't a coordinator node
 execute "./neo4j-server start" do
   user "root"
   group "root"
@@ -117,5 +165,19 @@ execute "./neo4j-server start" do
     File.exists?("#{installed_app_dir}/data/neo4j-server.pid")
   end
 
+  not_if { is_coordinator_node }
+end
+
+# start the Neo4j Coordinator, if this is a coordinator node
+execute "./neo4j-coordinator start" do
+  user "root"
+  group "root"
+
+  cwd "/etc/init.d"
+  not_if do
+    File.exists?("#{installed_app_dir}/data/neo4j-coordinator.pid")
+  end
+
+  only_if { is_coordinator_node }
 end
 

@@ -2,6 +2,6 @@
 ha.server=<%= @ha_server %>
 ha.machine_id=<%= @ha_machine_id %>
 
-ha.zoo_keeper_servers=<%= @zookeeper_addresses.map { |addr| "#{addr}:#{@zookeeper_port}"}.join(",") %>
+ha.zoo_keeper_servers=<%= @coordinator_addresses.map { |addr| "#{addr}:#{@coordinator_port}"}.join(",") %>
 
 <% end %>
