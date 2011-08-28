@@ -12,7 +12,7 @@ module VagrantHelpers
   def vagrant_cluster_counts
     found_instances = {}
     File.open( "Vagrantfile" ).each {|line|
-      if (m = /zookeeper_instance_count = (\d+)/.match(line)) then found_instances[:zoo] = m[1] end
+      if (m = /coordinator_instance_count = (\d+)/.match(line)) then found_instances[:zoo] = m[1] end
       if (m = /neo4j_instance_count = (\d+)/.match(line)) then found_instances[:neo4j] = m[1] end
     }
     return found_instances

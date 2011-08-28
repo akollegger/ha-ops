@@ -4,7 +4,7 @@ end
 
 Given /^Java (\d+\.\d+)$/ do |java_version|
   bash("java -version 2>&1")
-  last_stdout.any?{|line| /#{java_version}/ =~ line}.should be_true,
+  last_stdout.lines.any?{|line| /#{java_version}/ =~ line}.should be_true,
     "Java #{java_version} required but not found. Please check your installed Java."
 end
 
@@ -19,7 +19,7 @@ end
 Given /^these command\-line tools:$/ do |table|
   table.hashes.each do |hash|  
     bash("#{hash[:command]} #{hash[:version_switch]}")
-    last_stdout.any?{|line| /#{hash[:version]}/ =~ line}.should be_true,
+    last_stdout.lines.any?{|line| /#{hash[:version]}/ =~ line}.should be_true,
       "#{hash[:command]} version #{hash[:expected_version]} not found"
   end  
 end
@@ -29,10 +29,30 @@ Given /^environment variable "([^"]*)" set to "([^"]*)"$/ do |env_var, env_value
   getenv(env_var).should match(/#{env_value}/)
 end
 
-When /^I run these shell commands:$/ do |script|
-  script.each {|line|
-    bash(line, :verbose => true)
+Given /^these shell exports:$/ do |env_export|
+  export_re = /^export\s(\w*)=(.*)$/
+  env_export.lines.each {|line|
+    m = export_re.match line
+    if m then
+      env_var = m[1]
+      env_value = m[2]
+      setenv(env_var, env_value)
+      getenv(env_var).should match(/#{env_value}/)
+    end
   }
+end
+
+When /^I run these shell commands:$/ do |script|
+  script.lines.each {|line|
+    bash(line, :verbose => true) if !(line =~ /#.*/)
+  }
+end
+
+When /^I run these shell commands and wait (\d+) seconds?:$/ do |seconds, script|
+  script.lines.each {|line|
+    bash(line, :verbose => true) if !(line =~ /#.*/)
+  }
+  sleep(seconds.to_i)
 end
 
 When /^I fork this shell command and wait (\d+) seconds:$/ do |seconds, script|
@@ -45,7 +65,7 @@ end
 
 When /^I run these shell commands in "([^"]*)":$/ do |working_dir, script|
   Dir.chdir(working_dir) do
-    script.each {|line|
+    script.lines.each {|line|
       bash(line, :verbose => true)
     }
   end
@@ -70,8 +90,8 @@ Then /^"([^"]*)" should( not)? exist as a file$/ do |expected_file, negation|
 end
 
 Then /^these commands should succeed:$/ do |script|
-  script.each {|line|
-    bash(line, :verbose => true)
+  script.lines.each {|line|
+    bash(line, :verbose => true) if !(line =~ /#.*/)
     last_exit_code.should eql(0),
       "Exit code #{last_exit_code}. Check the transcript"
   }

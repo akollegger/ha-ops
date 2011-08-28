@@ -16,13 +16,18 @@ Full Ruby development environment:
 
 Virtual Box:
 
-* VirtualBox 4.0.2+
+* VirtualBox 4.1.0+
 
 Gems:
 
-* chef - for provisioning the instances
-* vagrant - for launching VirtualBox instances
-* cucumber - for running integration tests
+* chef-0.10.2 - for provisioning the instances
+* vagrant-0.8.2 - for launching VirtualBox instances
+* cucumber-1.0.2 - for running integration tests
+* rspec-2.6.0 - for asserting expectations
+
+If using rvm, then you can import the needed gems like so:
+
+  `rvm gemset import chef.gems`
 
 Simulated Deployment with Vagrant
 ---------------------------------

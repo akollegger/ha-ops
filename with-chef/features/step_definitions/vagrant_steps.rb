@@ -3,8 +3,8 @@
 
 
 Given /^a prepared Vagrant simulation$/ do 
-  vbox_version.should match(/Oracle VM VirtualBox Manager 4.0/),
-    "VirtualBox 4.0+ required. Please check your version."
+  vbox_version.should match(/Oracle VM VirtualBox Manager 4.1/),
+    "VirtualBox 4.1+ required. Please check your version."
   vagrant_file_exists.should be_true,
     "Vagrantfile is missing"
 end

@@ -1,3 +1,7 @@
+require 'rake/clean'
+
+CLEAN = FileList['installation']
+
 begin
   require 'rspec'
 rescue LoadError
@@ -10,4 +14,5 @@ begin
 rescue LoadError
     puts "Cucumber is not available. In order to run features, you must: sudo gem install cucumber"
 end
+
 

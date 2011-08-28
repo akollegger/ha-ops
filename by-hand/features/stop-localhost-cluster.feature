@@ -8,17 +8,19 @@ To manage both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
     Given a bash compatible shell
     And Java 1.6
     And a working directory at relative path "./installation"
-    And environment variable "NEO4J_COORDINATOR_INSTANCE_DIR" set to "./coord-instances"
-    And environment variable "NEO4J_COORDINATOR_INSTANCE_COUNT" set to "3"
-    And environment variable "NEO4J_COORDINATOR_SERVERS" set to "localhost:2181,localhost:2182,localhost:2183"
-    And environment variable "NEO4J_DATA_INSTANCE_DIR" set to "./neo4j-instances"
-    And environment variable "NEO4J_DATA_INSTANCE_COUNT" set to "3"
+    And these shell exports:
+    """
+    export NEO4J_COORDINATOR_INSTANCE_DIR=./coord-instances
+    export NEO4J_COORDINATOR_INSTANCE_COUNT=3
+    export NEO4J_DATA_INSTANCE_DIR=./neo4j-instances
+    export NEO4J_DATA_INSTANCE_COUNT=3
+    """
 
   @stop-neo4j-cluster
   Scenario: Stop local Neo4j processes
     When I run these shell commands:
     """
-    for (( i=1; i<=${NEO4J_DATA_INSTANCE_COUNT}; i++ )); do $NEO4J_DATA_INSTANCE_DIR/neo4j-$i/bin/neo4j stop ; done
+    for (( i=1; i<=${NEO4J_DATA_INSTANCE_COUNT}; i++ )); do pushd $NEO4J_DATA_INSTANCE_DIR/neo4j-${i}; ./bin/neo4j stop ; popd ; done
     """
     Then port 7474 on localhost should be closed
     And port 7475 on localhost should be closed
@@ -28,7 +30,7 @@ To manage both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
   Scenario: Stop local Neo4j Coordinator processes
     When I run these shell commands:
     """
-    for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do $NEO4J_COORDINATOR_INSTANCE_DIR/coord-$i/bin/neo4j-coordinator stop ; done
+    for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do pushd $NEO4J_COORDINATOR_INSTANCE_DIR/coord-${i}; ./bin/neo4j-coordinator stop ; popd ; done
     """
     Then port 2181 on localhost should be closed
     And port 2182 on localhost should be closed

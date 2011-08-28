@@ -8,13 +8,17 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
     Given a bash compatible shell
     And Java 1.6
     And a working directory at relative path "./installation"
-    And environment variable "NEO4J_VERSION" set to "1.3-SNAPSHOT"
-    And environment variable "NEO4J_HOME" set to "./neo4j-1.3-SNAPSHOT"
-    And environment variable "NEO4J_COORDINATOR_INSTANCE_DIR" set to "./coord-instances"
-    And environment variable "NEO4J_COORDINATOR_INSTANCE_COUNT" set to "3"
-    And environment variable "NEO4J_COORDINATOR_SERVERS" set to "localhost:2181,localhost:2182,localhost:2183"
-    And environment variable "NEO4J_DATA_INSTANCE_DIR" set to "./neo4j-instances"
-    And environment variable "NEO4J_DATA_INSTANCE_COUNT" set to "3"
+    And these shell exports:
+    """
+    export NEO4J_VERSION=1.4.1
+    export NEO4J_EDITION=enterprise
+    export NEO4J_HOME=./neo4j-home
+    export NEO4J_COORDINATOR_INSTANCE_DIR=./coord-instances
+    export NEO4J_COORDINATOR_INSTANCE_COUNT=3
+    export NEO4J_COORDINATOR_SERVERS=localhost:2181,localhost:2182,localhost:2183
+    export NEO4J_DATA_INSTANCE_DIR=./neo4j-instances
+    export NEO4J_DATA_INSTANCE_COUNT=3
+    """
 
   @install-neo4j
   Scenario: Install Neo4j locally
@@ -25,8 +29,9 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
     When I run these shell commands in "./":
       """
       # download Neo4j if we haven't already
-      if [[ ! -e neo4j.tar.gz ]]; then curl http://dist.neo4j.org/neo4j-${NEO4J_VERSION}-unix.tar.gz --output neo4j.tar.gz; fi
-      tar xzf neo4j.tar.gz
+      if [[ ! -e neo4j.tar.gz ]]; then curl http://dist.neo4j.org/neo4j-${NEO4J_EDITION}-${NEO4J_VERSION}-unix.tar.gz --output neo4j.tar.gz; fi
+      if [[ ! -d ${NEO4J_HOME} ]]; then tar xzf neo4j.tar.gz; fi
+      if [[ ! -d ${NEO4J_HOME} ]]; then mv neo4j-${NEO4J_EDITION}-${NEO4J_VERSION} ${NEO4J_HOME}; fi
       """
     Then "$NEO4J_HOME" should exist as a directory
     And "$NEO4J_HOME/bin/neo4j" should be an executable
@@ -46,14 +51,14 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
 
     """
     When I run these shell commands:
-      """
+    """
       # clean the coordinator instance directory
       rm -rf $NEO4J_COORDINATOR_INSTANCE_DIR
       mkdir $NEO4J_COORDINATOR_INSTANCE_DIR
       # make a complete copy of the base Neo4j install
       for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do cp -r $NEO4J_HOME $NEO4J_COORDINATOR_INSTANCE_DIR/coord-${i} 2>&1; done
       # make sure coordinator subdirectory exists
-      for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do mkdir -p $NEO4J_COORDINATOR_INSTANCE_DIRECTORY/coord-${i}/data/coordinator; done
+      for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do mkdir -p $NEO4J_COORDINATOR_INSTANCE_DIR/coord-${i}/data/coordinator; done
       # copy the base configuration into each coordinator directory
       for (( i=1; i<=${NEO4J_COORDINATOR_INSTANCE_COUNT}; i++ )); do cp coord.cfg $NEO4J_COORDINATOR_INSTANCE_DIR/coord-${i}/conf/ 2>&1; done
       # set the identity of each coordinator instance
@@ -74,7 +79,7 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
       """
       # each member of the data cluster needs a copy of the initial data store.
       # run the base install of Neo4j to create a graph database
-      if [ ! "$(ls -A $NEO4J_HOME/data/graph.db)" ]; then ${NEO4J_HOME}/bin/neo4j start; sleep 10; ${NEO4J_HOME}/bin/neo4j stop ; fi
+      if [ ! -e "${NEO4J_HOME}/data/graph.db" ]; then pushd ${NEO4J_HOME}; ./bin/neo4j start; sleep 10; ./bin/neo4j stop ; popd; fi
       # clear the Neo4j data instance directory
       rm -rf $NEO4J_DATA_INSTANCE_DIR
       mkdir $NEO4J_DATA_INSTANCE_DIR
@@ -92,6 +97,8 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
       for (( i=1; i<=${NEO4J_DATA_INSTANCE_COUNT}; i++ )); do echo ha.zoo_keeper_servers = ${NEO4J_COORDINATOR_SERVERS} >> $NEO4J_DATA_INSTANCE_DIR/neo4j-${i}/conf/neo4j.properties; done
       # assign a common name for the cluster
       for (( i=1; i<=${NEO4J_DATA_INSTANCE_COUNT}; i++ )); do echo ha.cluster_name = $HA_CLUSTER_NAME >> $NEO4J_DATA_INSTANCE_DIR/neo4j-${i}/conf/neo4j.properties; done
+      # configure the polling interval to be low
+      for (( i=1; i<=${NEO4J_DATA_INSTANCE_COUNT}; i++ )); do echo ha.pull_interval = 1 >> $NEO4J_DATA_INSTANCE_DIR/neo4j-${i}/conf/neo4j.properties; done
       """
     Then "neo4j-instances/neo4j-1/conf/neo4j-server.properties" should contain "org.neo4j.server.database.mode=ha"
     And "neo4j-instances/neo4j-1/conf/neo4j.properties" should contain "ha.machine_id = 1"
