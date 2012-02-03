@@ -27,7 +27,7 @@ Gems:
 
 If using rvm, then you can import the needed gems like so:
 
-  `rvm gemset import chef.gems`
+  `rvm gemset import ../chef.gems`
 
 Simulated Deployment with Vagrant
 ---------------------------------

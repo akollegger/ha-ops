@@ -10,7 +10,7 @@ To install both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
     And a working directory at relative path "./installation"
     And these shell exports:
     """
-    export NEO4J_VERSION=1.4.1
+    export NEO4J_VERSION=1.5.M02
     export NEO4J_EDITION=enterprise
     export NEO4J_HOME=./neo4j-home
     export NEO4J_COORDINATOR_INSTANCE_DIR=./coord-instances
