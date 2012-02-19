@@ -26,6 +26,7 @@ enlightenment_01() {
   COORDINATOR_DIR="${KOAN_WORKSPACE}/coordinators"
   COORDINATOR_COUNT=3
   NEO4J_DIR="${KOAN_WORKSPACE}/neo4j"
+  NEO4J_COUNT=3
 
   # create the koan.cfg file
   echo "# Neo4j HA-OPS Enlightened Koan Configuration" > ${KOAN_CONFIG}
@@ -34,6 +35,7 @@ enlightenment_01() {
   echo "COORDINATOR_DIR=\"${COORDINATOR_DIR}\"" >> ${KOAN_CONFIG}
   echo "COORDINATOR_COUNT=\"${COORDINATOR_COUNT}\"" >> ${KOAN_CONFIG}
   echo "NEO4J_DIR=\"${NEO4J_DIR}\"" >> ${KOAN_CONFIG}
+  echo "NEO4J_COUNT=\"${NEO4J_COUNT}\"" >> ${KOAN_CONFIG}
 
   # prepare the workspace
   mkdir -p "${KOAN_WORKSPACE}"
@@ -46,13 +48,15 @@ enlightenment_01() {
   if [[ ! -f "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}" ]]; then 
     curl http://dist.neo4j.org/${NEO4J_ARCHIVE} --output "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}"; 
   fi
+
+  # also untar it, for easier replication by other steps
+  if [[ ! -d "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}" ]]; then
+    tar xzf "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}" -C "${KOAN_WORKSPACE}"
+  fi
 }
 
 # create and configure coordinators
 enlightenment_02() {
-  if [[ ! -d "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}" ]]; then
-    tar xzf "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}" -C "${KOAN_WORKSPACE}"
-  fi
   for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
     cp -rn "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}/" "${COORDINATOR_DIR}/coord-${i}" 2>&1; 
   done
@@ -81,7 +85,45 @@ enlightenment_02() {
 
 }
 
+# create and configure neo4j cluster
+enlightenment_03() {
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
+    cp -rn "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}/" "${NEO4J_DIR}/neo4j-${i}" 2>&1; 
+  done
+
+  # modify neo4j-server.properties
+  # strip existing settings from neo4j-server.properties
+  find "${NEO4J_DIR}" -name neo4j-server.properties -print | \
+    xargs sed -e '/org\.neo4j\.server\.webserver\.port/d' -e '/org\.neo4j\.server\.database\.mode/d' "${dashi[@]}"
+
+  # set ha mode
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
+    echo "org.neo4j.server.database.mode=ha" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j-server.properties"
+  done
+  
+  # configure unique ports
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
+    echo "org.neo4j.server.webserver.port=747$(($i+3))" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j-server.properties"
+  done
+
+  # strip settings from neo4j.properties
+  find "${NEO4J_DIR}" -name neo4j.properties -print | \
+    xargs sed -e '/ha\.machine_id/d' -e '/ha\.server/d' \
+      -e '/ha\.zoo_keeper_servers/d' -e '/enable_remote_shell/d' "${dashi[@]}"
+
+  # set ha.machine_id, ha.server
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
+    echo "ha.machine_id = ${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+    echo "ha.server = localhost:600${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+    echo "ha.zoo_keeper_servers = localhost:2181,localhost:2182,localhost:2183" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+    echo "enable_remote_shell = port=1331" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+  done
+  
+}
+
+
 enlightenment_01
 enlightenment_02
+enlightenment_03
 
 echo ${KOAN_CONFIG}
