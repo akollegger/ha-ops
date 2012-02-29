@@ -109,13 +109,15 @@ enlightenment_03() {
   # strip settings from neo4j.properties
   find "${NEO4J_DIR}" -name neo4j.properties -print | \
     xargs sed -e '/ha\.machine_id/d' -e '/ha\.server/d' \
-      -e '/ha\.zoo_keeper_servers/d' -e '/enable_remote_shell/d' "${dashi[@]}"
+      -e '/ha\.zoo_keeper_servers/d' -e '/enable_remote_shell/d' \
+      -e '/ha\.pull_interval/d' "${dashi[@]}"
 
   # set ha.machine_id, ha.server
   for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
     echo "ha.machine_id = ${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
     echo "ha.server = localhost:600${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
     echo "ha.zoo_keeper_servers = localhost:2181,localhost:2182,localhost:2183" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+    echo "ha.pull_interval = 2" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
     echo "enable_remote_shell = port=1331" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
   done
   
