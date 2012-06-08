@@ -21,7 +21,7 @@ esac
 
 # prepare workspace
 enlightenment_01() {
-  NEO4J_VERSION="1.6"
+  NEO4J_VERSION="1.7"
   KOAN_WORKSPACE="${BASE_DIR}/workspace"
   COORDINATOR_DIR="${KOAN_WORKSPACE}/coordinators"
   COORDINATOR_COUNT=3
