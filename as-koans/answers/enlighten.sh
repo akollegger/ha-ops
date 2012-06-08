@@ -21,7 +21,7 @@ esac
 
 # prepare workspace
 enlightenment_01() {
-  NEO4J_VERSION="1.7"
+  NEO4J_VERSION=${1}
   KOAN_WORKSPACE="${BASE_DIR}/workspace"
   COORDINATOR_DIR="${KOAN_WORKSPACE}/coordinators"
   COORDINATOR_COUNT=3
@@ -123,8 +123,7 @@ enlightenment_03() {
   
 }
 
-
-enlightenment_01
+enlightenment_01 ${1:-"1.7"}
 enlightenment_02
 enlightenment_03
 
