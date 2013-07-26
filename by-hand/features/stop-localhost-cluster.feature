@@ -6,7 +6,7 @@ To manage both a Neo4j-HA Data cluster and a Neo4j Coordinator cluster
 
   Background:
     Given a bash compatible shell
-    And Java 1.6
+    And Java 1.7
     And a working directory at relative path "./installation"
     And these shell exports:
     """
