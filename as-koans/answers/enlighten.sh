@@ -123,7 +123,7 @@ enlightenment_03() {
   
 }
 
-enlightenment_01 ${1:-"1.7"}
+enlightenment_01 ${1:-"1.8"}
 enlightenment_02
 enlightenment_03
 
