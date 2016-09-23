@@ -23,30 +23,25 @@ esac
 enlightenment_01() {
   NEO4J_VERSION=${1}
   KOAN_WORKSPACE="${BASE_DIR}/workspace"
-  COORDINATOR_DIR="${KOAN_WORKSPACE}/coordinators"
-  COORDINATOR_COUNT=3
-  NEO4J_DIR="${KOAN_WORKSPACE}/neo4j"
+  NEO4J_DIR="${KOAN_WORKSPACE}/cluster"
   NEO4J_COUNT=3
 
   # create the koan.cfg file
   echo "# Neo4j HA-OPS Enlightened Koan Configuration" > ${KOAN_CONFIG}
   echo "NEO4J_VERSION=\"${NEO4J_VERSION}\"" >> ${KOAN_CONFIG}
   echo "KOAN_WORKSPACE=\"${KOAN_WORKSPACE}\"" >> ${KOAN_CONFIG}
-  echo "COORDINATOR_DIR=\"${COORDINATOR_DIR}\"" >> ${KOAN_CONFIG}
-  echo "COORDINATOR_COUNT=\"${COORDINATOR_COUNT}\"" >> ${KOAN_CONFIG}
   echo "NEO4J_DIR=\"${NEO4J_DIR}\"" >> ${KOAN_CONFIG}
   echo "NEO4J_COUNT=\"${NEO4J_COUNT}\"" >> ${KOAN_CONFIG}
 
   # prepare the workspace
   mkdir -p "${KOAN_WORKSPACE}"
-  mkdir -p "${COORDINATOR_DIR}"
   mkdir -p "${NEO4J_DIR}"
 
   # download neo4j into workspace, if not already there
   NEO4J_ARCHIVE="neo4j-enterprise-${NEO4J_VERSION}-unix.tar.gz"
-  
-  if [[ ! -f "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}" ]]; then 
-    curl http://dist.neo4j.org/${NEO4J_ARCHIVE} --output "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}"; 
+
+  if [[ ! -f "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}" ]]; then
+    curl http://dist.neo4j.org/${NEO4J_ARCHIVE} --output "${KOAN_WORKSPACE}/${NEO4J_ARCHIVE}";
   fi
 
   # also untar it, for easier replication by other steps
@@ -55,76 +50,95 @@ enlightenment_01() {
   fi
 }
 
-# create and configure coordinators
-enlightenment_02() {
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    cp -rn "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}/" "${COORDINATOR_DIR}/coord-${i}" 2>&1; 
-  done
-
-  # modify coord.cfg
-  # strip existing server.n and clientPort settings
-  find "${COORDINATOR_DIR}" -name coord.cfg -print | \
-    xargs sed -e '/server\.[0-9]/d' -e '/clientPort=/d' "${dashi[@]}"
-
-  # append local server settings
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    echo "server.1=localhost:2888:3888" >>  "${COORDINATOR_DIR}/coord-${i}/conf/coord.cfg"
-    echo "server.2=localhost:2889:3889" >>  "${COORDINATOR_DIR}/coord-${i}/conf/coord.cfg"
-    echo "server.3=localhost:2890:3890" >>  "${COORDINATOR_DIR}/coord-${i}/conf/coord.cfg"
-  done
-  
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    echo "clientPort=218${i}" >>  "${COORDINATOR_DIR}/coord-${i}/conf/coord.cfg"
-  done
-
-  # set zookeeper instance ids
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    echo ${i} > $COORDINATOR_DIR/coord-${i}/data/coordinator/myid; 
-  done
-  
-
-}
-
 # create and configure neo4j cluster
-enlightenment_03() {
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    cp -rn "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}/" "${NEO4J_DIR}/neo4j-${i}" 2>&1; 
+enlightenment_02() {
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    cp -rn "${KOAN_WORKSPACE}/neo4j-enterprise-${NEO4J_VERSION}/" "${NEO4J_DIR}/neo4j-${i}" 2>&1;
   done
 
-  # modify neo4j-server.properties
-  # strip existing settings from neo4j-server.properties
-  find "${NEO4J_DIR}" -name neo4j-server.properties -print | \
-    xargs sed -e '/org\.neo4j\.server\.webserver\.port/d' -e '/org\.neo4j\.server\.database\.mode/d' "${dashi[@]}"
+  # modify neo4j.conf
 
-  # set ha mode
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    echo "org.neo4j.server.database.mode=ha" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j-server.properties"
-  done
-  
-  # configure unique ports
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    echo "org.neo4j.server.webserver.port=747$(($i+3))" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j-server.properties"
+  # strip existing settings from neo4j.conf
+  find "${NEO4J_DIR}" -name neo4j.conf -print | \
+    xargs sed \
+    -e '/dbms\.connectors\.default_listen_address/d' \
+    -e '/dbms\.connectors\.default_advertised_address/d' \
+    -e '/dbms\.connector\.bolt\.listen_address/d' \
+    -e '/dbms\.connector\.http\.listen_address/d' \
+    -e '/dbms\.connector\.https\.listen_address/d' \
+    -e '/core_edge\.expected_core_cluster_size/d' \
+    -e '/core_edge\.initial_discovery_members/d' \
+    -e '/core_edge\.discovery_listen_address/d' \
+    -e '/core_edge\.transaction_listen_address/d' \
+    -e '/core_edge\.raft_listen_address/d' \
+    -e '/dbms\.mode/d' \
+    "${dashi[@]}"
+
+  # append a koan-configured section
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "\n\n#********************************************************************\n# Koan Configuration\n#********************************************************************" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
   done
 
-  # strip settings from neo4j.properties
-  find "${NEO4J_DIR}" -name neo4j.properties -print | \
-    xargs sed -e '/ha\.machine_id/d' -e '/ha\.server/d' \
-      -e '/ha\.zoo_keeper_servers/d' -e '/enable_remote_shell/d' \
-      -e '/ha\.pull_interval/d' "${dashi[@]}"
-
-  # set ha.machine_id, ha.server
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    echo "ha.machine_id = ${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
-    echo "ha.server = localhost:600${i}" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
-    echo "ha.zoo_keeper_servers = localhost:2181,localhost:2182,localhost:2183" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
-    echo "ha.pull_interval = 2" >>  "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
-    echo "enable_remote_shell = port=1331" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.properties"
+  # each member will participate in the core group
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.mode=CORE" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
   done
-  
+
+  # expected member size is ${NEO4J_COUNT}
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "core_edge.expected_core_cluster_size=${NEO4J_COUNT}" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # enable default_listen_address, bound to any and all addresses
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.connectors.default_listen_address=0.0.0.0" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # set default_advertised_address to localhost
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.connectors.default_advertised_address=localhost" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # range of ports for bolt
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.connector.bolt.listen_address=:$((7686 + i))" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # range of ports for http
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.connector.http.listen_address=:$((7473 + i))" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # range of ports for https
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "dbms.connector.https.listen_address=:$((6473 + i))" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+
+  # range of ports for core_edge discovery
+  # core_edge.initial_discovery_members=localhost:5000,localhost:5001, localhost:5002
+
+  # range of ports for core_edge communication
+  discovery_members=()
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    discovery_port=$((4999 + i))
+    discovery_members+=("localhost:${discovery_port}")
+    echo "core_edge.discovery_listen_address=:${discovery_port}" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+  discovery_members_string=$( IFS=$','; echo "${discovery_members[*]}" )
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    echo "core_edge.initial_discovery_members=${discovery_members_string}" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    transaction_listen_address=$((5999 + i))
+    echo "core_edge.transaction_listen_address=:${transaction_listen_address}" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    raft_listen_address=$((6999 + i))
+    echo "core_edge.raft_listen_address=:${raft_listen_address}" >> "${NEO4J_DIR}/neo4j-${i}/conf/neo4j.conf"
+  done
 }
 
-enlightenment_01 ${1:-"1.8"}
+enlightenment_01 ${1:-"3.1.0-M09"}
 enlightenment_02
-enlightenment_03
 
 echo ${KOAN_CONFIG}

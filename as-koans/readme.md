@@ -1,9 +1,9 @@
 Neo4j Ops Koans
 ===============
 
-Deploying Neo4j into a production any production environment requries a
+Deploying Neo4j into a production any production environment requires a
 common set of configuration operations. These koans lead through the steps
-of configuring and deploying a local HA cluster of Neo4j.
+of configuring and deploying a local cluster of Neo4j.
 
 Environment
 -----------
@@ -25,7 +25,7 @@ The koans should be approached in order, repeating this sequence:
 Enlightenment
 -------------
 
-For the impatient student, answers are provided as a reference. 
+For the impatient student, answers are provided as a reference.
 
 Satisfy koan workspace installation:
 
@@ -33,6 +33,4 @@ Satisfy koan workspace installation:
 
 Control the enlightened cluster:
 
-  sh answers/cluster [start|stop|restart]
-
-
+  `sh answers/cluster.sh [start|stop|restart]`

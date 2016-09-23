@@ -1,10 +1,9 @@
-Neo4j High-Availability Ops
-===========================
+Neo4j Clustering Ops
+====================
 
-HA-Ops provides tooling for managing a Neo4j installation, graduating from
-a single server into a High-Availability cluster.
+Clustering Ops provides tooling for managing a Neo4j installation.
 
-Ha-Ops Three Ways
+Clustering-Ops Three Ways
 -----------------
 
 Installing and managing a cluster of machines is a time-honored task. Usually,
@@ -19,7 +18,7 @@ So, we'll do that...
 
 Each approach is documented and driven by executable feature descriptions,
 written using Cucumber BDD. Read the READMEs, look for the `*.feature` files,
-then try them out (which will require some Ruby tools). 
+then try them out (which will require some Ruby tools).
 
 Where to start?
 ---------------
@@ -31,14 +30,14 @@ After that try deploying `with-chef` using virtual machines to simulate
 a cluster.
 
 The `with-hops` tooling is not yet available, so you'll have to wait to try that
-out. 
+out.
 
 Cucumber what?
 --------------
 
-Cucumber is a Behaviour Driven Development tool. In use here, it's like 
+Cucumber is a Behaviour Driven Development tool. In use here, it's like
 following along with a blog post that actually performs the steps being
-described. 
+described.
 
 Requirements
 ------------
@@ -66,4 +65,3 @@ References
 * [Cucumber BDD](http://cukes.info)
 * [Chef Systems Integration](http://www.opscode.com/)
 * [rvm](http://rvm.beginrescueend.com/)
-

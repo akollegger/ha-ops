@@ -8,8 +8,21 @@ BASE_DIR=${BASE_DIR:-"`dirname $0`/.."}
 LIB_DIR="${BASE_DIR}/lib"
 KOAN_CONFIG=${KOAN_CONFIG:-"${BASE_DIR}/koan.cfg"}
 
-echo "Koan 2 - Create Coordinator Cluster"
-echo "-----------------------------------"
+
+# load color definitions
+. ${BASE_DIR}/src/colorize
+
+  # load configuration to test
+  . "${KOAN_CONFIG}"
+
+oneTimeSetUp() {
+  echo "Koan 2 - Create Coordinator Cluster"
+  echo "${GREEN}-----------------------------------${RESET}"
+}
+
+testThereAreNoCoordinators() {
+    assertTrue "Coordinators are not needed for core-edge, so shouldn't be set up" "false"
+}
 
 testThreeCoordinatorsExists()
 {
@@ -29,23 +42,23 @@ testThreeCoordinatorsExists()
 testAllCoordinatorsConfiguredCorrectly()
 {
   local coord_cfg_check=""
-  
+
   coord_cfg_check="`find ${COORDINATOR_DIR} -name coord.cfg | xargs grep -L -e '^server.1=localhost:2888:3888'`"
   assertTrue "server.1 is not configured correctly in these files... \n${coord_cfg_check}" \
-    "[ -z '${coord_cfg_check}' ]"  
+    "[ -z '${coord_cfg_check}' ]"
   coord_cfg_check="`find ${COORDINATOR_DIR} -name coord.cfg | xargs grep -L -e '^server.2=localhost:2889:3889'`"
   assertTrue "server.2 is not configured correctly in these files... \n${coord_cfg_check}" \
-    "[ -z '${coord_cfg_check}' ]"  
+    "[ -z '${coord_cfg_check}' ]"
   coord_cfg_check="`find ${COORDINATOR_DIR} -name coord.cfg | xargs grep -L -e '^server.3=localhost:2890:3890'`"
   assertTrue "server.3 is not configured correctly in these files... \n${coord_cfg_check}" \
-    "[ -z '${coord_cfg_check}' ]"  
+    "[ -z '${coord_cfg_check}' ]"
 
   coord_cfg_check="`grep -L -e '^clientPort=2181' ${COORDINATOR_DIR}/coord-1/conf/coord.cfg`"
-  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"  
+  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"
   coord_cfg_check="`grep -L -e '^clientPort=2182' ${COORDINATOR_DIR}/coord-2/conf/coord.cfg`"
-  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"  
+  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"
   coord_cfg_check="`grep -L -e '^clientPort=2183' ${COORDINATOR_DIR}/coord-3/conf/coord.cfg`"
-  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"  
+  assertTrue "clientPort set incorrectly in ${coord_cfg_check}" "[ -z '${coord_cfg_check}' ]"
 
   assertEquals "coordinator 1 id is wrong" \
     "1" "`cat ${COORDINATOR_DIR}/coord-1/data/coordinator/myid`"
@@ -57,10 +70,11 @@ testAllCoordinatorsConfiguredCorrectly()
     "3" "`cat ${COORDINATOR_DIR}/coord-3/data/coordinator/myid`"
 }
 
-oneTimeSetUp()
+oneTimeTearDown()
 {
-  # load include to test
-  . "${KOAN_CONFIG}"
+  echo "${RESET}"
+  echo "${YELLOW}-------------------------------------------------${RESET}"
+  echo "When resolved, proceed with 'sh koans/koan_02.sh'"
 }
 
 # load shunit2

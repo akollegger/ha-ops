@@ -8,6 +8,8 @@ BASE_DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 LIB_DIR="${BASE_DIR}/lib"
 KOAN_CONFIG="${BASE_DIR}/koan.cfg"
 
+# load color definitions
+. ${BASE_DIR}/src/colorize
 
 # set up "-i" for sed, os-dependent way
 dashi=(-i "")  # default is version of sed that works on Mac OS X
@@ -21,32 +23,23 @@ esac
 
 startCluster() {
 
-  # first, the coordinators
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    if [ ! -f "${COORDINATOR_DIR}/coord-${i}/data/neo4j-coordinator.pid" ]; then 
-      ${COORDINATOR_DIR}/coord-${i}/bin/neo4j-coordinator start; 
-    fi 
-  done
-
-  # then the neo4j cluster
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    if [ ! -f "${NEO4J_DIR}/neo4j-${i}/data/neo4j-service.pid" ]; then 
-      ${NEO4J_DIR}/neo4j-${i}/bin/neo4j start; 
-    fi 
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    if [ ! -f "${NEO4J_DIR}/neo4j-${i}/run/neo4j.pid" ]; then
+      cluster_member="${NEO4J_DIR}/neo4j-${i}/bin/neo4j"
+      echo "${GREEN}>>> Starting neo4j-${i}${RESET}"
+      $cluster_member start;
+    fi
   done
 }
 
 stopCluster() {
 
-  # first the neo4j cluster
-  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do 
-    ${NEO4J_DIR}/neo4j-${i}/bin/neo4j stop; 
+  for (( i=1; i<=${NEO4J_COUNT}; i++ )); do
+    cluster_member="${NEO4J_DIR}/neo4j-${i}/bin/neo4j"
+    echo "${RED}>>> Stopping neo4j-${i}${RESET}"
+    $cluster_member stop;
   done
 
-  # then the coordinators
-  for (( i=1; i<=${COORDINATOR_COUNT}; i++ )); do 
-    ${COORDINATOR_DIR}/coord-${i}/bin/neo4j-coordinator stop; 
-  done
 }
 
 . "${KOAN_CONFIG}"
@@ -72,5 +65,3 @@ case "${1}" in
 esac
 
 exit $?
-
-
